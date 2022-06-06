@@ -1,0 +1,13 @@
+#container {
+    height: 400px;
+    min-width: 310px;
+    display: none;
+}
+.chart {
+    height: 800px;
+    min-width: 310px; 
+    display: none;
+}
+.active {
+    display: block;
+}
