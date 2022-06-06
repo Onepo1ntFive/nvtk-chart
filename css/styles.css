@@ -8,6 +8,9 @@
     min-width: 310px; 
     display: none;
 }
+.loader {
+    display: none;
+}
 .active {
     display: block;
 }
