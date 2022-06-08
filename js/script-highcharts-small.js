@@ -38,12 +38,6 @@
         queryParams.append(key, defaultParams[key]);
     }
 
-    // axios
-    //     .get(`${src}NVTK.json`)
-    //     .then(function (response) {
-    //         console.log(response.data)
-    //     })
-
     async function getDataByPage(page) {
         // get data dates range
         if (!dateFrom && !dateTill) {
@@ -107,7 +101,6 @@
                 )
             }
         }
-        console.log(transformedData);
         return transformedData;
     }
 
