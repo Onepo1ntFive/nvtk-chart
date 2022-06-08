@@ -44,12 +44,11 @@
             await axios
                 .get(`${src}NVTK/dates.json?${defaultParams}`)
                 .then(function (response) {
-                    // dateFrom = data.dates.data[0][0];
                     dateTill = response.data.dates.data[0][1];
                     // dateTill - 3 months
                     dateFrom = new Date(dateTill)
                     dateFrom.setMonth(dateFrom.getMonth() - 3);
-                    dateFrom = dateFrom.toLocaleDateString('fr-CA')
+                    dateFrom = dateFrom.toLocaleDateString('fr-CA');
                 })
         }
         await axios
@@ -193,7 +192,7 @@
                         }
                     },
                     // styles
-                    color: '#fff',
+                    color: '#1251A0',
                 }
             ]
         });
