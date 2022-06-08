@@ -1,12 +1,15 @@
-#container {
-    height: 400px;
-    min-width: 310px;
+.chart {
     display: none;
 }
-.chart {
+.chart--full {
     height: 800px;
-    min-width: 310px; 
-    display: none;
+    min-width: 310px;
+}
+.chart--small {
+    height: 300px;
+    width: 500px;
+    
+    background-color: #41c8f4;
 }
 .loader {
     display: none;
