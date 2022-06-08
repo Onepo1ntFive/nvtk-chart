@@ -41,11 +41,11 @@ Highcharts.getJSON(`${src}NVTK/dates.json?${defaultParams}`, (data) => {
     dateTill = data.dates.data[0][1];
 });
 
-axios
-    .get(`${src}NVTK.json`)
-    .then(function (response) {
-        console.log(response.data)
-    })
+// axios
+//     .get(`${src}NVTK.json`)
+//     .then(function (response) {
+//         console.log(response.data)
+//     })
 
 async function getDataByPage(page) {
     await axios
@@ -167,10 +167,11 @@ function drawHighchart(data) {
             headerShape: 'callout',
             borderWidth: 0,
             shadow: false,
+            shared: true,
+            headerShape: 'square',
             positioner: function (width, height, point) {
                 let chart = this.chart;
                 let position;
-
                 if (point.isHeader) {
                     position = {
                         x: Math.max(
@@ -188,7 +189,6 @@ function drawHighchart(data) {
                         y: point.series.yAxis.top - chart.plotTop
                     };
                 }
-
                 return position;
             }
         },
