@@ -169,7 +169,7 @@
                     turboThreshold: 5000,
                     tooltip: {
                         pointFormatter: function () {
-                            let text = `${this.date.toLocaleDateString('ru-ru', { year: "numeric", month: "short", day: "numeric" })}<br><b>${Highcharts.numberFormat(this.cost, 0)}</b> руб.<br>Объём: ${Highcharts.numberFormat(this.volume, 0)}`
+                            let text = `${this.date.toLocaleDateString('ru-ru', { year: "numeric", month: "short", day: "numeric" })}<br><b>${Highcharts.numberFormat(this.cost, 0)}</b> руб.<br>Объём: ${Highcharts.numberFormat(this.volume, 0)}`;
                             return text;
                         }
                     },

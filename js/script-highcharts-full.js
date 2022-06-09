@@ -73,6 +73,7 @@
                     {
                         x: new Date(item[1]).getTime(),
                         y: item[13],
+                        date: new Date(item[1]),
                         open: item[6],
                         close: item[11],
                         high: item[8],
@@ -155,28 +156,7 @@
                 shadow: false,
                 shared: true,
                 headerShape: 'square',
-                positioner: function (width, height, point) {
-                    let chart = this.chart;
-                    let position;
-                    if (point.isHeader) {
-                        position = {
-                            x: Math.max(
-                                chart.plotLeft,
-                                Math.min(
-                                    point.plotX + chart.plotLeft - width / 2,
-                                    chart.chartWidth - width - chart.marginRight
-                                )
-                            ),
-                            y: point.plotY
-                        };
-                    } else {
-                        position = {
-                            x: point.series.chart.plotLeft,
-                            y: point.series.yAxis.top - chart.plotTop
-                        };
-                    }
-                    return position;
-                }
+                headerFormat: '',
             },
 
             yAxis: [
@@ -205,20 +185,16 @@
                 // shares cost line
                 {
                     type: 'line',
-                    name: 'NVTK',
+                    name: 'nvtk',
                     label: {
                         enabled: false,
                     },
                     data: data.data,
                     turboThreshold: 5000,
                     tooltip: {
+                        shape: 'callout',
                         pointFormatter: function () {
-                            let text = `
-                                <div> <b>Открытие</b>: ${Highcharts.numberFormat(this.open, 0)} </div>
-                                <div> <b>Закрытие</b>: ${Highcharts.numberFormat(this.close, 0)} </div>
-                                <div> <b>Max</b>: ${Highcharts.numberFormat(this.high, 0)} </div>
-                                <div> <b>Min</b>: ${Highcharts.numberFormat(this.low, 0)} </div>
-                            `
+                            let text = `${this.date.toLocaleDateString('ru-ru', { year: "numeric", month: "short", day: "numeric" })}<br><b>Открытие</b>: ${Highcharts.numberFormat(this.open, 0)}<br><b>Закрытие</b>: ${Highcharts.numberFormat(this.close, 0)}<br><b>Max</b>: ${Highcharts.numberFormat(this.high, 0)}<br><b>Min</b>: ${Highcharts.numberFormat(this.low, 0)}`;
                             return text;
                         }
                     },
@@ -226,7 +202,7 @@
                 // volumes graph
                 {
                     type: 'column',
-                    name: 'Volume',
+                    name: 'volume',
                     data: data.volume,
                     turboThreshold: 0,
                     yAxis: 1,
