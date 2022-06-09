@@ -48,7 +48,6 @@
         } else {
             date = yearToDate;
         }
-        console.log(date, dateTill);
         // get data dates range)
         await axios
             .get(`${src}.json?start=${page * itemsPerPage}&from=${date}&till=${dateTill}`)
@@ -68,7 +67,14 @@
                     loaderBlock.classList.remove('active');
                     chart.series[0].setData(transformDataForHighcharts(fullData).data);
                     chart.series[1].setData(transformDataForHighcharts(fullData).volume);
-                    console.log('canGetFullData', canGetFullData);
+
+                    if (!canGetFullData) {
+                        chart.update({
+                            rangeSelector: {
+                                selected: 4
+                            }
+                        });
+                    }
                 }
             })
     }
@@ -119,9 +125,8 @@
         return transformedData;
     }
 
-    function drawHighchart(data) {
+    function drawHighchart() {
         chart = Highcharts.stockChart('chart-full', {
-
             title: {
                 text: 'ПАО "НОВАТЭК", NVTK',
                 align: 'left',
@@ -246,6 +251,6 @@
     }
 
     // start
-    drawHighchart(fullData);
+    drawHighchart();
     getDataByPage(page);
 })(); // ready
