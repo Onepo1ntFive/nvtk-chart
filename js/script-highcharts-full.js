@@ -6,7 +6,9 @@
     let fullData = [];
     let dateFrom = null;
     let dateTill = null;
+    let yearToDate = null;
     let chart = null;
+    let canGetFullData = true;
 
     let board = 'TQBR';
     let page = 0;
@@ -28,16 +30,28 @@
     // 
     async function getDataByPage(page) {
         // get data dates range
+
         if (!dateFrom && !dateTill) {
             await axios
                 .get(`${src}/dates.json`)
                 .then(function (response) {
                     dateFrom = response.data.dates.data[0][0];
                     dateTill = response.data.dates.data[0][1];
+
+                    yearToDate = new Date(dateTill);
+                    yearToDate.setMonth(yearToDate.getMonth() - 12);
+                    yearToDate = yearToDate.toLocaleDateString('fr-CA');
                 })
         }
+        if (!canGetFullData) {
+            date = dateFrom
+        } else {
+            date = yearToDate;
+        }
+        console.log(date, dateTill);
+        // get data dates range)
         await axios
-            .get(`${src}.json?start=${page * itemsPerPage}&from=${dateFrom}&till=${dateTill}`)
+            .get(`${src}.json?start=${page * itemsPerPage}&from=${date}&till=${dateTill}`)
             .then(function (response) {
                 let nextPage = page + 1;
                 const newData = response.data.history.data;
@@ -52,7 +66,9 @@
                     // if data all - draw chart
                     chartBlock.classList.add('active');
                     loaderBlock.classList.remove('active');
-                    drawHighchart(transformDataForHighcharts(fullData));
+                    chart.series[0].setData(transformDataForHighcharts(fullData).data);
+                    chart.series[1].setData(transformDataForHighcharts(fullData).volume);
+                    console.log('canGetFullData', canGetFullData);
                 }
             })
     }
@@ -112,6 +128,7 @@
             },
             rangeSelector: {
                 selected: 0,
+                allButtonsEnabled: true,
                 buttons: [{
                     type: 'month',
                     count: 1,
@@ -136,13 +153,24 @@
                     type: 'all',
                     text: 'Всё время',
                     title: 'За всё время',
-                    width: 0
+                    events: {
+                        click: function () {
+                            if (canGetFullData) {
+                                canGetFullData = false;
+                                fullData = [];
+                                chartBlock.classList.remove('active');
+                                loaderBlock.classList.add('active');
+                                getDataByPage(page, true)
+                            }
+                        }
+                    }
                 }],
                 buttonTheme: {
                     paddingLeft: 10,
                     paddingRight: 10,
                     width: 'auto',
-                }
+
+                },
             },
 
             exporting: {
@@ -189,7 +217,7 @@
                     label: {
                         enabled: false,
                     },
-                    data: data.data,
+                    // data: data.data,
                     turboThreshold: 5000,
                     tooltip: {
                         shape: 'callout',
@@ -203,7 +231,7 @@
                 {
                     type: 'column',
                     name: 'volume',
-                    data: data.volume,
+                    // data: data.volume,
                     turboThreshold: 0,
                     yAxis: 1,
                     pointWidth: 2,
