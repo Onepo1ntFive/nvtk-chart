@@ -1,20 +1,18 @@
 (function () {
-    // ready
     const chartBlock = document.querySelector('.js-chart-small');
     const loaderBlock = chartBlock.nextElementSibling;
     loaderBlock.classList.add('active');
 
-    const src = 'https://iss.moex.com/iss/history/engines/stock/markets/shares/securities/';
-
     let fullData = [];
     let dateFrom = null;
     let dateTill = null;
+    let chart = null;
 
     let board = 'TQBR';
     let page = 0;
     let itemsPerPage = 100;
-    let totalItems = null;
-    let pages = null;
+
+    const src = `https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/${board}/securities/NVTK`;
 
     // 
     Highcharts.setOptions({
@@ -27,22 +25,11 @@
         }
     });
 
-    // 
-    let queryParams = new URLSearchParams();
-    let params = null;
-    let defaultParams = {
-        'iss.meta': 'off',
-        'lang': 'ru',
-    }
-    for (let key in defaultParams) {
-        queryParams.append(key, defaultParams[key]);
-    }
-
     async function getDataByPage(page) {
         // get data dates range
         if (!dateFrom && !dateTill) {
             await axios
-                .get(`${src}NVTK/dates.json?${defaultParams}`)
+                .get(`${src}/dates.json`)
                 .then(function (response) {
                     dateTill = response.data.dates.data[0][1];
                     // dateTill - 3 months
@@ -52,27 +39,25 @@
                 })
         }
         await axios
-            .get(`${src}NVTK.json?start=${page * 100}&from=${dateFrom}&till=${dateTill}`)
+            .get(`${src}.json?start=${page * itemsPerPage}&from=${dateFrom}&till=${dateTill}`)
             .then(function (response) {
-                totalItems = response.data['history.cursor'].data[0][1];
                 let nextPage = page + 1;
                 const newData = response.data.history.data;
 
-                for (const item of newData) {
-                    fullData.push(item);
-                }
-
-                if (totalItems > fullData.length) {
-                    // get all data page by page
+                if (!!newData.length) {
+                    for (const item of newData) {
+                        fullData.push(item);
+                    }
                     getDataByPage(nextPage);
+                    // get all data page by page
                 } else {
                     // if data all - draw chart
+                    chartBlock.classList.add('active');
+                    loaderBlock.classList.remove('active');
                     drawHighchart(transformDataForHighcharts(fullData));
                 }
             })
     }
-    getDataByPage(page);
-
     // 
     function transformDataForHighcharts(data) {
         let transformedData = {};
@@ -104,9 +89,6 @@
     }
 
     function drawHighchart(data) {
-        loaderBlock.classList.remove('active');
-        chartBlock.classList.add('active');
-
         Highcharts.stockChart('chart-small', {
             chart: {
                 backgroundColor: 'transparent'
@@ -125,7 +107,7 @@
             navigator: {
                 enabled: false
             },
-            
+
             scrollbar: {
                 enabled: false
             },
@@ -197,4 +179,8 @@
             ]
         });
     }
+
+    // start
+    drawHighchart(fullData);
+    getDataByPage(page);
 })();

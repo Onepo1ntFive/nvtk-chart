@@ -3,17 +3,16 @@
     const loaderBlock = chartBlock.nextElementSibling;
     loaderBlock.classList.add('active');
 
-    const src = 'https://iss.moex.com/iss/history/engines/stock/markets/shares/securities/';
-
     let fullData = [];
     let dateFrom = null;
     let dateTill = null;
+    let chart = null;
 
     let board = 'TQBR';
     let page = 0;
     let itemsPerPage = 100;
-    let totalItems = null;
-    let pages = null;
+
+    const src = `https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/${board}/securities/NVTK`;
 
     // 
     Highcharts.setOptions({
@@ -27,53 +26,36 @@
     });
 
     // 
-    let queryParams = new URLSearchParams();
-    let params = null;
-    let defaultParams = {
-        'iss.meta': 'off',
-        'lang': 'ru',
-    }
-    for (let key in defaultParams) {
-        queryParams.append(key, defaultParams[key]);
-    }
-
-    // get data dates range
-    Highcharts.getJSON(`${src}NVTK/dates.json?${defaultParams}`, (data) => {
-        dateFrom = data.dates.data[0][0];
-        dateTill = data.dates.data[0][1];
-    });
-
     async function getDataByPage(page) {
         // get data dates range
         if (!dateFrom && !dateTill) {
             await axios
-                .get(`${src}NVTK/dates.json?${defaultParams}`)
+                .get(`${src}/dates.json`)
                 .then(function (response) {
                     dateFrom = response.data.dates.data[0][0];
                     dateTill = response.data.dates.data[0][1];
                 })
         }
         await axios
-            .get(`${src}NVTK.json?start=${page * 100}&from=${dateFrom}&till=${dateTill}`)
+            .get(`${src}.json?start=${page * itemsPerPage}&from=${dateFrom}&till=${dateTill}`)
             .then(function (response) {
-                totalItems = response.data['history.cursor'].data[0][1];
                 let nextPage = page + 1;
                 const newData = response.data.history.data;
 
-                for (const item of newData) {
-                    fullData.push(item);
-                }
-
-                if (totalItems > fullData.length) {
-                    // get all data page by page
+                if (!!newData.length) {
+                    for (const item of newData) {
+                        fullData.push(item);
+                    }
                     getDataByPage(nextPage);
+                    // get all data page by page
                 } else {
                     // if data all - draw chart
+                    chartBlock.classList.add('active');
+                    loaderBlock.classList.remove('active');
                     drawHighchart(transformDataForHighcharts(fullData));
                 }
             })
     }
-    getDataByPage(page);
 
     // 
     function transformDataForHighcharts(data) {
@@ -121,16 +103,14 @@
     }
 
     function drawHighchart(data) {
-        loaderBlock.classList.remove('active');
-        chartBlock.classList.add('active');
+        chart = Highcharts.stockChart('chart-full', {
 
-        Highcharts.stockChart('chart-full', {
             title: {
                 text: 'ПАО "НОВАТЭК", NVTK',
                 align: 'left',
             },
             rangeSelector: {
-                selected: 2,
+                selected: 0,
                 buttons: [{
                     type: 'month',
                     count: 1,
@@ -159,9 +139,7 @@
                 }],
                 buttonTheme: {
                     paddingLeft: 10,
-                    paddingTop: 5,
                     paddingRight: 10,
-                    paddingbottom: 5,
                     width: 'auto',
                 }
             },
@@ -262,4 +240,8 @@
             ]
         });
     }
+
+    // start
+    drawHighchart(fullData);
+    getDataByPage(page);
 })(); // ready
