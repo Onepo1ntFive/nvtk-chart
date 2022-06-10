@@ -4,8 +4,8 @@
     loaderBlock.classList.add('active');
 
     let fullData = [];
-    let dateQueryParam = '';
     let yearToDate = null;
+    let dateQueryParam = '';
     let chart = null;
     let canGetFullData = true;
 
@@ -14,6 +14,12 @@
     let itemsPerPage = 100;
 
     const src = `https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/${board}/securities/NVTK`;
+
+    // first time get 1 year data
+    yearToDate = new Date();
+    yearToDate.setMonth(yearToDate.getMonth() - 12);
+    yearToDate = yearToDate.toLocaleDateString('fr-CA');
+    dateQueryParam = `&from=${yearToDate}`;
 
     // 
     Highcharts.setOptions({
@@ -28,13 +34,6 @@
 
     // 
     async function getDataByPage(page) {
-        if (canGetFullData) {
-            yearToDate = new Date();
-            yearToDate.setMonth(yearToDate.getMonth() - 12);
-            yearToDate = yearToDate.toLocaleDateString('fr-CA');
-            dateQueryParam = `&from=${yearToDate}`;
-        }
-        // get data dates range)
         await axios
             .get(`${src}.json?start=${page * itemsPerPage}${dateQueryParam}`)
             .then(function (response) {
@@ -46,7 +45,6 @@
                         fullData.push(item);
                     }
                     getDataByPage(nextPage);
-                    // get all data page by page
                 } else {
                     // if data all - draw chart
                     chartBlock.classList.add('active');
@@ -149,6 +147,7 @@
                             if (canGetFullData) {
                                 canGetFullData = false;
                                 fullData = [];
+                                dateQueryParam = '';
                                 chartBlock.classList.remove('active');
                                 loaderBlock.classList.add('active');
                                 getDataByPage(page, true)
@@ -208,8 +207,7 @@
                     label: {
                         enabled: false,
                     },
-                    // data: data.data,
-                    turboThreshold: 5000,
+                    turboThreshold: 0,
                     tooltip: {
                         shape: 'callout',
                         pointFormatter: function () {
@@ -222,7 +220,6 @@
                 {
                     type: 'column',
                     name: 'volume',
-                    // data: data.volume,
                     turboThreshold: 0,
                     yAxis: 1,
                     pointWidth: 2,

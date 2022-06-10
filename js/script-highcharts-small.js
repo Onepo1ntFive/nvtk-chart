@@ -12,6 +12,10 @@
 
     const src = `https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/${board}/securities/NVTK`;
 
+    dateFrom = new Date();
+    dateFrom.setMonth(dateFrom.getMonth() - 3);
+    dateFrom = dateFrom.toLocaleDateString('fr-CA');
+
     // 
     Highcharts.setOptions({
         lang: {
@@ -24,10 +28,6 @@
     });
 
     async function getDataByPage(page) {
-        dateFrom = new Date();
-        dateFrom.setMonth(dateFrom.getMonth() - 3);
-        dateFrom = dateFrom.toLocaleDateString('fr-CA');
-
         await axios
             .get(`${src}.json?start=${page * itemsPerPage}&from=${dateFrom}`)
             .then(function (response) {
@@ -39,7 +39,6 @@
                         fullData.push(item);
                     }
                     getDataByPage(nextPage);
-                    // get all data page by page
                 } else {
                     // if data all - draw chart
                     chartBlock.classList.add('active');
