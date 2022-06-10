@@ -4,8 +4,7 @@
     loaderBlock.classList.add('active');
 
     let fullData = [];
-    let dateFrom = null;
-    let dateTill = null;
+    let dateQueryParam = '';
     let yearToDate = null;
     let chart = null;
     let canGetFullData = true;
@@ -29,28 +28,15 @@
 
     // 
     async function getDataByPage(page) {
-        // get data dates range
-
-        if (!dateFrom && !dateTill) {
-            await axios
-                .get(`${src}/dates.json`)
-                .then(function (response) {
-                    dateFrom = response.data.dates.data[0][0];
-                    dateTill = response.data.dates.data[0][1];
-
-                    yearToDate = new Date(dateTill);
-                    yearToDate.setMonth(yearToDate.getMonth() - 12);
-                    yearToDate = yearToDate.toLocaleDateString('fr-CA');
-                })
-        }
-        if (!canGetFullData) {
-            date = dateFrom
-        } else {
-            date = yearToDate;
+        if (canGetFullData) {
+            yearToDate = new Date();
+            yearToDate.setMonth(yearToDate.getMonth() - 12);
+            yearToDate = yearToDate.toLocaleDateString('fr-CA');
+            dateQueryParam = `&from=${yearToDate}`;
         }
         // get data dates range)
         await axios
-            .get(`${src}.json?start=${page * itemsPerPage}&from=${date}&till=${dateTill}`)
+            .get(`${src}.json?start=${page * itemsPerPage}${dateQueryParam}`)
             .then(function (response) {
                 let nextPage = page + 1;
                 const newData = response.data.history.data;

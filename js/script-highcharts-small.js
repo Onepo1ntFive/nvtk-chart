@@ -5,8 +5,6 @@
 
     let fullData = [];
     let dateFrom = null;
-    let dateTill = null;
-    let chart = null;
 
     let board = 'TQBR';
     let page = 0;
@@ -26,20 +24,12 @@
     });
 
     async function getDataByPage(page) {
-        // get data dates range
-        if (!dateFrom && !dateTill) {
-            await axios
-                .get(`${src}/dates.json`)
-                .then(function (response) {
-                    dateTill = response.data.dates.data[0][1];
-                    // dateTill - 3 months
-                    dateFrom = new Date(dateTill)
-                    dateFrom.setMonth(dateFrom.getMonth() - 3);
-                    dateFrom = dateFrom.toLocaleDateString('fr-CA');
-                })
-        }
+        dateFrom = new Date();
+        dateFrom.setMonth(dateFrom.getMonth() - 3);
+        dateFrom = dateFrom.toLocaleDateString('fr-CA');
+
         await axios
-            .get(`${src}.json?start=${page * itemsPerPage}&from=${dateFrom}&till=${dateTill}`)
+            .get(`${src}.json?start=${page * itemsPerPage}&from=${dateFrom}`)
             .then(function (response) {
                 let nextPage = page + 1;
                 const newData = response.data.history.data;
