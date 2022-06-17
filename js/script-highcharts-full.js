@@ -52,6 +52,8 @@
                     chart.series[0].setData(transformDataForHighcharts(fullData).data);
                     chart.series[1].setData(transformDataForHighcharts(fullData).volume);
 
+                    console.log(transformDataForHighcharts(fullData).data.length)
+
                     if (!canGetFullData) {
                         chart.update({
                             rangeSelector: {
