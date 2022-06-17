@@ -57,14 +57,40 @@
             padding: 1em;
         }
 
-        .lineLegend {
+        .lineLegend text {
+            font-family: sans-serif;
             text-transform: capitalize;
+            font-size: 12px;
+        }
+
+        .grid path {
+            stroke: transparent;
+        }
+
+        .grid line {
+            stroke: rgb(230, 230, 230);
         }
 
         .focus,
         .focus>* {
             transition: opacity 0.2s ease-in-out;
         }
+
+        .handle {
+            border-radius: 10px;
+            fill: #fff;
+            stroke-width: 0.5px;
+            stroke: rgb(230, 230, 230);
+            height: 100px;
+            transform: translate(0, 3px);
+            transition: stroke 0.2s ease-in-out;
+        }
+        .handle:active,
+        .handle:focus,
+        .handle:hover {
+            stroke: steelblue;
+        }
+
     </style>
 </head>
 

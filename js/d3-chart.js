@@ -158,7 +158,7 @@
 
         var brush = d3.brushX()
             .extent([[0, 0], [width, height3]])
-            .on("brush end", brushed);
+            .on("start brush end", brushed);
 
         var zoom = d3.zoom()
             .scaleExtent([1, Infinity])
@@ -205,6 +205,21 @@
             // .call(d3.axisRight(yScale));
             .call(yAxis);
 
+
+        // gridlines in y axis function
+        function make_y_gridlines() {
+            return d3.axisLeft(y)
+                .ticks(4)
+        }
+
+        // add the Y gridlines
+        svg.append("g")
+            .attr("class", "grid")
+            .call(make_y_gridlines()
+                .tickSize(-width)
+                .tickFormat("")
+            )
+
         // обрезаем основную линию для зума
         var clip = svg.append("defs").append("svg:clipPath")
             .attr("id", "clip")
@@ -250,7 +265,7 @@
             .data([data]) // binds data to the line
             .style('fill', 'none')
             .attr('id', 'priceChart')
-            .attr('stroke', '#f00')
+            .attr('stroke', 'steelblue')
             .attr('stroke-width', '1')
             .attr('transform', `translate(0, ${margin3.top})`)
             .attr('d', line2);
@@ -265,7 +280,6 @@
             .call(brush)
             .call(brush.move, x.range());
 
-        // оси
         // renders y crosshair
         const focus = svg
             .append('g')
@@ -358,7 +372,7 @@
                     }
                 })
                 .style('fill', 'black')
-                .attr('transform', 'translate(15,9)'); //align texts with boxes
+                .attr('transform', 'translate(0, 0)'); //align texts with boxes
         };
 
         /* Volume series bars */
