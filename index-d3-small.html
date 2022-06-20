@@ -10,22 +10,15 @@
 </head>
 
 <body>
-    <div class="chart chart--full">
+    <div class="chart chart--small">
         <div class="js-loader loader"></div>
         <div class="chart__title">ПАО "НОВАТЭК", NVTK</div>
         <div id="chart" class="chart__chart js-chart">
-            <div class="chart__selector">
-                <button class="js-timeselect active" data-range="1">Месяц</button>
-                <button class="js-timeselect" data-range="3">Квартал</button>
-                <button class="js-timeselect" data-range="6">Пол года</button>
-                <button class="js-timeselect" data-range="12">Год</button>
-                <button class="js-all">Всё время</button>
-            </div>
         </div>
     </div>
     <script src="./js/axios.min.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="./js/d3-chart.js"></script>
+    <script src="./js/d3-chart-small.js"></script>
 </body>
 
 </html>
