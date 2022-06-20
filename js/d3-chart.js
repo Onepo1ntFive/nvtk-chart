@@ -335,7 +335,7 @@
                 .attr('class', 'lineLegendBg')
                 .attr('width', 165)
                 .attr('height', 60)
-                .attr('fill', 'rgba(124, 181, 236, 0.2)')
+                .attr('fill', 'rgba(124, 181, 236, 0.4)')
                 .attr('transform', () => {
                     return `translate(${x(currentData['TRADEDATE']) + xPosBg}, ${y(currentData['CLOSE']) - yPosBg})`;
                 })
