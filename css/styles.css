@@ -2,8 +2,14 @@
     position: relative;
     display: inline-block;
     vertical-align: middle;
+    width: 100%;
+}
+.chart .chart__title {
+    padding-bottom: 20px;
+    font-family: sans-serif;
 }
 .chart .chart__chart {
+    position: relative;
     width: 100%;
     height: 100%;
     opacity: 0.3;
@@ -13,6 +19,30 @@
 .chart .chart__chart.active {
     opacity: 1;
     pointer-events: all;
+}
+.chart .chart__selector {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-flow: row wrap;
+}
+.chart .chart__selector button {
+    margin: 0;
+    margin-right: 5px;
+    padding: 5px 10px;
+    border: 0;
+    border-radius: 4px;
+    background: rgb(247, 247, 247);
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+.chart .chart__selector button:not(:disabled):hover,
+.chart .chart__selector button.active {
+    background: rgb(230, 235, 245);
+}
+.chart .chart__selector button:disabled {
+    cursor: not-allowed;
 }
 /* - */
 .chart--full {

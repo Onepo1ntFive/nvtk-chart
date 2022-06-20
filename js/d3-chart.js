@@ -2,7 +2,6 @@
     let fullData = [];
     let yearToDate = null;
     let dateQueryParam = '';
-    let chart = null;
     let canGetFullData = true;
 
     let board = 'TQBR';
@@ -16,6 +15,11 @@
     yearToDate.setMonth(yearToDate.getMonth() - 12);
     yearToDate = yearToDate.toLocaleDateString('fr-CA');
     dateQueryParam = `&from=${yearToDate}`;
+
+    loader = document.querySelector('.js-loader');
+    chartBlock = document.querySelector('.js-chart');
+    loader.classList.add('active');
+    chartBlock.classList.remove('active');
 
     // 
     async function getDataByPage(page) {
@@ -32,93 +36,50 @@
                     }
                     getDataByPage(nextPage);
                 } else {
-                    initialiseChart(fullData);
-
+                    loader.classList.remove('active');
+                    chartBlock.classList.add('active');
                     if (!canGetFullData) {
+                        d3.select("svg").remove();
                     }
+                    initialiseChart(fullData);
                 }
             })
     }
 
-    // 
-    function transformDataForHighcharts(data) {
-        let transformedData = {};
-        transformedData.data = [];
-        transformedData.volume = [];
+    document.querySelector('.js-all').addEventListener('click', (e) => {
+        if (canGetFullData) {
+            e.target.classList.add('active')
+            loader.classList.add('active');
+            chartBlock.classList.remove('active');
 
-        //get items by board
-        let filteredData = data.filter(item => item[0] === board);
-
-        for (const [index, item] of filteredData.entries()) {
-            if (!!item[6]) {
-                // costs
-                transformedData.data.push(
-                    {
-                        x: new Date(item[1]).getTime(),
-                        y: item[13],
-                        date: new Date(item[1]),
-                        open: item[6],
-                        close: item[11],
-                        high: item[8],
-                        low: item[7],
-                        cost: item[13],
-                    }
-                )
-
-                // volumes
-                let prevIndex = (index > 0) ? index - 1 : index;
-                let volume = filteredData[index][13];
-                let prevVolume = filteredData[prevIndex][13];
-
-                let green = 'rgb(36, 132, 123)'; // green
-                let red = 'rgb(209, 66, 66)'; // red
-                let colColor = (volume > prevVolume) ? green : red;
-
-                transformedData.volume.push(
-                    {
-                        x: new Date(item[1]).getTime(),
-                        y: item[12],
-                        color: colColor
-                    }
-                )
-            }
+            dateQueryParam = '';
+            canGetFullData = false;
+            fullData = [];
+            getDataByPage(page);
         }
-        return transformedData;
-    }
-
-    function numPrecent(num, precent) {
-        return num * (precent / 100);
-    }
+    })
     // -------------------------
     function initialiseChart(data) {
         data = data.filter(
-            row => row['HIGH'] && row['LOW'] && row['CLOSE'] && row['OPEN']
-        );
-
-        thisYearStartDate = new Date(2010, 0, 1);
-
-        // filter out data based on time period
-        data = data.filter(row => {
-            if (row['TRADEDATE']) {
-                return row['TRADEDATE'] >= thisYearStartDate;
+            row => {
+                return row['TRADEDATE'] && row['HIGH'] && row['LOW'] && row['CLOSE'] && row['OPEN']
             }
-        });
+        );
+        let svg = document.querySelector('#chart');
+        const margin = { top: 0, right: 50, bottom: 75, left: 10 };
+        const margin2 = { top: 500, right: 50, bottom: 50, left: 10 };
+        const margin3 = { top: 550, right: 50, bottom: 0, left: 10 };
 
-        var svg = document.querySelector('#chart');
-        var margin = { top: 0, right: 50, bottom: 150, left: 10 };
-        var margin2 = { top: 750, right: 20, bottom: 100, left: 40 };
-        var margin3 = { top: 800, right: 20, bottom: 0, left: 40 };
-
-        var width = svg.offsetWidth - margin.left - margin.right;
-        var height = svg.offsetHeight - margin.top - margin.bottom;
-        var height2 = svg.offsetHeight - margin2.top - margin2.bottom;
-        var height3 = svg.offsetHeight - margin3.top - margin3.bottom;
+        const width = svg.offsetWidth - margin.left - margin.right;
+        const height = svg.offsetHeight - margin.top - margin.bottom;
+        const height2 = svg.offsetHeight - margin2.top - margin2.bottom;
+        const height3 = svg.offsetHeight - margin3.top - margin3.bottom;
 
         // find data range
-        const xMin = d3.min(data, d => {
+        let xMin = d3.min(data, d => {
             return d['TRADEDATE'];
         });
-        const xMax = d3.max(data, d => {
+        let xMax = d3.max(data, d => {
             return d['TRADEDATE'];
         });
 
@@ -136,9 +97,11 @@
             return d['VOLUME'];
         });
 
-
         let x = d3.scaleTime().domain([xMin, xMax]).range([0, width]);
-        let y = d3.scaleLinear().domain([yMin, yMax]).range([height - margin.top - margin.bottom, 0]);
+        let y = d3
+            .scaleLinear()
+            .domain([yMin, yMax])
+            .range([height - margin.top - margin.bottom, 0]);
 
         let x2 = d3.scaleTime().domain([xMin, xMax]).range([0, width]);
         let y2 = d3.scaleLinear().domain([yMin2, yMax2]).range([height2, 0]);
@@ -146,21 +109,14 @@
         let x3 = d3.scaleTime().domain([xMin, xMax]).range([0, width]);
         let y3 = d3.scaleLinear().domain([yMin, yMax]).range([height3, 0]);
 
-
         let xAxis = d3.axisBottom(x);
         let yAxis = d3.axisRight(y);
 
-        let xAxis2 = d3.axisBottom(x2);
-        let yAxis2 = d3.axisRight(y2);
-
-        let xAxis3 = d3.axisBottom(x3);
-        let yAxis3 = d3.axisRight(y3);
-
-        var brush = d3.brushX()
+        let brush = d3.brushX()
             .extent([[0, 0], [width, height3]])
             .on("start brush end", brushed);
 
-        var zoom = d3.zoom()
+        let zoom = d3.zoom()
             .scaleExtent([1, Infinity])
             .translateExtent([[0, 0], [width, height]])
             .extent([[0, 0], [width, height]])
@@ -186,13 +142,27 @@
             .append('g')
             .attr('transform', `translate(${margin['left']}, ${margin['top']})`);
 
+        // gridlines in y axis function
+        function make_y_gridlines() {
+            return d3.axisLeft(y)
+                .ticks(4)
+        }
+
+        // add the y gridlines
+        svg.append("g")
+            .attr("class", "grid")
+            .call(make_y_gridlines()
+                .tickSize(-width)
+                .tickFormat("")
+            )
+
         // create the axes component
         // x axis
         svg
             .append('g')
             .attr('id', 'xAxis')
             .attr("class", "axis axis--x")
-            .attr('transform', `translate(0, ${height})`)
+            .attr('transform', `translate(5, ${height})`)
             // .call(d3.axisBottom(xScale));
             .call(xAxis);
 
@@ -201,35 +171,20 @@
             .append('g')
             .attr('id', 'yAxis')
             .attr("class", "axis axis--y")
-            .attr('transform', `translate(${width}, 0)`)
+            .attr('transform', `translate(${width + 4}, 0)`)
             // .call(d3.axisRight(yScale));
             .call(yAxis);
 
-
-        // gridlines in y axis function
-        function make_y_gridlines() {
-            return d3.axisLeft(y)
-                .ticks(4)
-        }
-
-        // add the Y gridlines
-        svg.append("g")
-            .attr("class", "grid")
-            .call(make_y_gridlines()
-                .tickSize(-width)
-                .tickFormat("")
-            )
-
-        // обрезаем основную линию для зума
-        var clip = svg.append("defs").append("svg:clipPath")
+        // clip for zoom
+        let clip = svg.append("defs").append("svg:clipPath")
             .attr("id", "clip")
             .append("svg:rect")
-            .attr("width", width)
+            .attr("width", width + 3)
             .attr("height", height)
             .attr("x", 0)
             .attr("y", 0);
 
-        // основная линия
+        // main line
         const line = d3
             .line()
             .x(d => {
@@ -250,7 +205,7 @@
             .attr("clip-path", "url(#clip)")
             .attr('d', line);
 
-        // линия для лупы
+        // brush line
         const line2 = d3
             .line()
             .x(d => {
@@ -262,7 +217,7 @@
 
         svg
             .append('path')
-            .data([data]) // binds data to the line
+            .data([data])
             .style('fill', 'none')
             .attr('id', 'priceChart')
             .attr('stroke', 'steelblue')
@@ -270,17 +225,21 @@
             .attr('transform', `translate(0, ${margin3.top})`)
             .attr('d', line2);
 
-        var context = svg.append("g")
-            .attr("class", "context")
+        let zoom_line = svg.append("g")
+            .attr("class", "zoom_line")
             .attr("transform", `translate(0, ${margin3.top})`);
 
-        // добавляем кисть для зума
-        context.append("g")
+        // brush for zoom
+        zoom_line.append("g")
             .attr("class", "brush")
+            .attr('stroke-width', '0')
             .call(brush)
             .call(brush.move, x.range());
 
-        // renders y crosshair
+        d3.select('.selection')
+            .attr('fill', 'rgba(102, 133, 194, 0.3)')
+
+        // y crosshair
         const focus = svg
             .append('g')
             .attr('class', 'focus')
@@ -298,7 +257,7 @@
             .attr('fill', 'rgb(124, 181, 236)')
             .attr('stroke', 'rgb(124, 181, 236)')
 
-        // 
+        // crosshair overlay
         svg
             .append('rect')
             .attr('class', 'overlay-cross')
@@ -307,7 +266,6 @@
             .on('mouseover', () => focus.style('opacity', '1'))
             .on('mouseout', () => focus.style('opacity', '0'))
             .on('mousemove', generateCrosshair);
-
 
         d3.select('.overlay-cross').style('fill', 'none');
         d3.select('.overlay-cross').style('pointer-events', 'all');
@@ -335,7 +293,7 @@
                 .attr('x1', 0)
                 .attr('x2', 0)
                 .attr('y1', -height)
-                .attr('y2', height);
+                .attr('y2', height - y(currentPoint['CLOSE']));
 
             // updates the legend to display the date, open, close, high, low, and volume of the selected mouseover area
             updateLegends(currentPoint);
@@ -372,108 +330,148 @@
                     }
                 })
                 .style('fill', 'black')
-                .attr('transform', 'translate(0, 0)'); //align texts with boxes
+                .attr('transform', 'translate(0, 50)'); //align texts with boxes
         };
 
-        /* Volume series bars */
-        const volData = data.filter(d => d['VOLUME'] !== null && d['VOLUME'] !== 0);
+        function drawColumns(data) {
+            const volData = data.filter(d => d['VOLUME'] !== null && d['VOLUME'] !== 0);
 
-        const yMinVolume = d3.min(volData, d => {
-            return Math.min(d['VOLUME']);
-        });
-        const yMaxVolume = d3.max(volData, d => {
-            return Math.max(d['VOLUME']);
-        });
-
-        let yVolumeScale = d3
-            .scaleLinear()
-            .domain([yMinVolume, yMaxVolume])
-            .range([height, height - margin.top - margin.bottom]);
-
-        let column = svg
-            .selectAll()
-            .data(volData)
-            .enter()
-            .append('rect')
-            .attr('x', d => {
-                return xScale(d['TRADEDATE']);
-            })
-            .attr('y', d => {
-                return yVolumeScale(d['VOLUME']);
-            })
-            .attr('class', 'vol')
-            .attr('fill', (d, i) => {
-                if (i === 0) {
-                    return '#03a678';
-                } else {
-                    // return volData[i - 1].CLOSE > d.CLOSE ? '#c0392b' : '#03a678'; // green bar if price is rising during that period, and red when price  is falling
-                    return volData[i - 1].CLOSE > d.CLOSE ? 'rgb(209, 66, 66)' : 'rgb(36, 132, 123)';
-                }
-            })
-            .attr('width', 3)
-            .attr('height', d => {
-                return height - yVolumeScale(d['VOLUME']);
+            const yMinVolume = d3.min(volData, d => {
+                return Math.min(d['VOLUME']);
+            });
+            const yMaxVolume = d3.max(volData, d => {
+                return Math.max(d['VOLUME']);
             });
 
-        // y axis for volume
-        svg.append('g')
-            .attr("transform", `translate(${width}, 0)`)
-            .call(d3.axisRight(yVolumeScale));
+            let yVolumeScale = d3
+                .scaleLinear()
+                .domain([yMinVolume, yMaxVolume])
+                .range([height, height - margin.top - margin.bottom]);
 
+            // remove all before draw for zoom
+            svg.selectAll("rect.vol").remove();
 
-        /* Zoom */
-        function brushed() {
-            if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-            var s = d3.event.selection || x3.range();
-            x.domain(s.map(x3.invert, x3));
-            x2.domain(s.map(x3.invert, x3));
-            svg.select(".line").attr("d", line);
+            // draw columns
+            svg
+                .selectAll()
+                .data(volData)
+                .enter()
+                .append('rect')
+                .attr('x', d => {
+                    return xScale(d['TRADEDATE']);
+                })
+                .attr('y', d => {
+                    return yVolumeScale(d['VOLUME']);
+                })
+                .attr('class', 'vol')
+                .attr("clip-path", "url(#clip)")
+                .attr('fill', (d, i) => {
+                    if (i === 0) {
+                        return '#03a678';
+                    } else {
+                        return volData[i - 1].CLOSE > d.CLOSE ? 'rgb(209, 66, 66)' : 'rgb(36, 132, 123)';
+                    }
+                })
+                .attr('width', 2)
+                .attr('height', d => {
+                    return height - yVolumeScale(d['VOLUME']);
+                });
 
-            svg.select(".axis--x").call(xAxis);
-            svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
-                .scale(width / (s[1] - s[0]))
-                .translate(-s[0], 0));
+            // y axis for volumes
+            if (!document.querySelector('.vol-y')) {
+                svg.append('g')
+                    .attr('class', 'vol-y')
+                    .attr("transform", `translate(${width + 4}, 0)`)
+                    .call(d3.axisRight(yVolumeScale).ticks(2).tickFormat(x => `${nFormatter(x, 1)}`));
+            }
         }
 
+        /* zoom by brush */
+        function brushed() {
+            if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+            let s = d3.event.selection || x3.range();
+            x.domain(s.map(x3.invert, x3));
+            xScale.domain(s.map(x3.invert, x3));
+            svg.select(".line").attr("d", line);
+            drawColumns(data);
+            svg.select(".axis--x").call(xAxis);
+            svg.select(".zoom").call(zoom.transform, d3.zoomIdentity.scale(width / (s[1] - s[0])).translate(-s[0], 0));
+        }
         function zoomed() {
             if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-            var t = d3.event.transform;
+            let t = d3.event.transform;
             x.domain(t.rescaleX(x3).domain());
             x2.domain(t.rescaleX(x3).domain());
             svg.select(".line").attr("d", line);
             svg.select(".axis--x").call(xAxis);
-            context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
+            zoom_line.select(".brush").call(brush.move, x.range().map(t.invertX, t));
         }
-    };
 
-    const responsivefy = svg => {
-        // get container + svg aspect ratio
+        // time range selector
+        const timeSelectorBtns = document.querySelectorAll('.js-timeselect');
+        Array.prototype.forEach.call(timeSelectorBtns, function (timeSelectorBtn, i) {
+            if (!canGetFullData) {
+                timeSelectorBtn.disabled = true;
+                timeSelectorBtn.classList.remove('active');
+            }
+
+            timeSelectorBtn.addEventListener('click', (event) => {
+                let thisBtn = event.target;
+                Array.prototype.forEach.call(timeSelectorBtns, function (el, i) {
+                    el.classList.remove('active');
+                });
+                thisBtn.classList.add('active');
+                let range = timeSelectorBtn.dataset.range;
+                d3.select(".brush").transition().duration(1000).call(brush.move, [width - width / (12 / range), width]);
+            })
+        });
+
+        // set brush on time interval changes
+        if (canGetFullData) {
+            d3.select(".brush").transition().duration(1000).call(brush.move, [width - width / 12, width]);
+        } else {
+            d3.select(".brush").transition().duration(3000).call(brush.move, [0, width]);
+        }
+
+    }; // end chart 
+
+    function responsivefy(svg) {
         const container = d3.select(svg.node()),
             width = parseInt(svg.style('width')),
             height = parseInt(svg.style('height')),
             aspect = width / height;
-
-        // get width of container and resize svg to fit it
         const resize = () => {
-            var targetWidth = parseInt(container.style('width'));
+            let targetWidth = parseInt(container.style('width'));
             svg.attr('width', targetWidth);
             svg.attr('height', Math.round(targetWidth / aspect));
         };
-
-        // add viewBox and preserveAspectRatio properties,
-        // and call resize so that svg resizes on inital page load
         svg
             .attr('viewBox', '0 0 ' + width + ' ' + height)
             .attr('perserveAspectRatio', 'xMinYMid')
             .call(resize);
-
-        // to register multiple listeners for same event type,
-        // you need to add namespace, i.e., 'click.foo'
-        // necessary if you call invoke this function for multiple svgs
-        // api docs: https://github.com/mbostock/d3/wiki/Selections#on
         d3.select(window).on('resize.' + container.attr('id'), resize);
+
+
     };
     // -------------------------
+    function nFormatter(num, digits) {
+        const lookup = [
+            { value: 1, symbol: "" },
+            { value: 1e3, symbol: "k" },
+            { value: 1e6, symbol: "M" },
+            { value: 1e9, symbol: "G" },
+            { value: 1e12, symbol: "T" },
+            { value: 1e15, symbol: "P" },
+            { value: 1e18, symbol: "E" }
+        ];
+        const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+        let item = lookup.slice().reverse().find(function (item) {
+            return num >= item.value;
+        });
+        return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
+    }
+    // -------------------------
 
+    // start
     getDataByPage(page);
 })();
