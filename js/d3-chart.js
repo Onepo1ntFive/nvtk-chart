@@ -21,6 +21,22 @@
     loader.classList.add('active');
     chartBlock.classList.remove('active');
 
+
+    d3.timeFormatDefaultLocale({
+        "decimal": ",",
+        "thousands": ".",
+        "grouping": [3],
+        "currency": ["€", ""],
+        "dateTime": "%a %b %e %X %Y",
+        "date": "%d.%m.%Y",
+        "time": "%H:%M:%S",
+        "periods": ["AM", "PM"],
+        "days": ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+        "shortDays": ['Вc', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+        "months": ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+        "shortMonths": ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'],
+    })
+
     // 
     async function getDataByPage(page) {
         await axios
@@ -311,22 +327,23 @@
                 .append('g')
                 .attr('class', 'lineLegend')
                 .attr('transform', (d, i) => {
-                    return `translate(0, ${i * 20})`;
+                    return `translate(0, ${i * 15})`;
                 });
             lineLegend
                 .append('text')
                 .text(d => {
                     if (d === 'TRADEDATE') {
-                        return `${d}: ${currentData[d].toLocaleDateString()}`;
-                    } else if (
-                        d === 'HIGH' ||
-                        d === 'LOW' ||
-                        d === 'OPEN' ||
-                        d === 'CLOSE'
-                    ) {
-                        return `${d}: ${currentData[d].toFixed(2)}`;
+                        return `${currentData[d].toLocaleDateString()}`;
+                    } else if (d === 'HIGH') {
+                        return `Max: ${currentData[d].toFixed(2)}`;
+                    } else if (d === 'LOW') {
+                        return `Min: ${currentData[d].toFixed(2)}`;
+                    } else if (d === 'OPEN') {
+                        return `Открытие: ${currentData[d].toFixed(2)}`;
+                    } else if (d === 'CLOSE') {
+                        return `Закрытие: ${currentData[d].toFixed(2)}`;
                     } else {
-                        return `${d}: ${currentData[d]}`;
+                        return `Объём (акции): ${numberWithSpaces(currentData[d])}`;
                     }
                 })
                 .style('fill', 'black')
@@ -469,6 +486,12 @@
             return num >= item.value;
         });
         return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
+    }
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    function numberWithSpaces(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
     // -------------------------
 
