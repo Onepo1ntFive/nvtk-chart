@@ -12,7 +12,7 @@
 
     // first time get 1 year data
     yearToDate = new Date();
-    yearToDate.setMonth(yearToDate.getMonth() - 3);
+    yearToDate.setMonth(yearToDate.getMonth() - 2);
     yearToDate = yearToDate.toLocaleDateString('fr-CA');
     dateQueryParam = `&from=${yearToDate}`;
 
@@ -200,11 +200,10 @@
             .attr('class', 'overlay-cross')
             .attr('width', width)
             .attr('height', height)
-            .on('mouseover', () => focus.style('opacity', '1'))
+            .on('mouseover', () => { focus.style('opacity', '1') })
             .on('mouseout', () => {
                 focus.style('opacity', '0')
-                d3.selectAll('.lineLegend').style('opacity', '0');
-                d3.selectAll('.lineLegendBg').style('opacity', '0');
+                d3.selectAll('.lineLegendBlock').style('opacity', '0');
             })
             .on('mousemove', generateCrosshair);
 
@@ -242,50 +241,17 @@
 
         /* Legends */
         function updateLegends(currentData) {
-            d3.selectAll('.lineLegend').remove();
-            d3.selectAll('.lineLegendBg').remove();
+            d3.selectAll('.lineLegendBlock').remove();
 
-            let xPos = (x(currentData['TRADEDATE']) >= width - 175) ? -165 : 20;
-            let xPosBg = (x(currentData['TRADEDATE']) >= width - 175) ? -175 : 10;
+            let xPosBg = (x(currentData['TRADEDATE']) >= width - 170) ? -180 : 10;
+            let yPosBg = (y(currentData['CLOSE']) >= height - 60) ? 60 : 0;
 
-            let yPos = (y(currentData['CLOSE']) >= height - 60) ? 40 : -10;
-            let yPosBg = (y(currentData['CLOSE']) >= height - 60) ? 60 : 10;
-
-            const lineLegendBg = svg
-                .append('rect')
-                .attr('class', 'lineLegendBg')
-                .attr('width', 165)
-                .attr('height', 60)
-                .attr('fill', 'rgba(255, 255, 255, 0.7)')
-                .attr('transform', () => {
-                    return `translate(${x(currentData['TRADEDATE']) + xPosBg}, ${y(currentData['CLOSE']) - yPosBg})`;
+            svg.append('foreignObject')
+                .attr('class', 'lineLegendBlock')
+                .html((d) => {
+                    return `<div>${currentData['TRADEDATE'].toLocaleDateString()}<br>Закрытие: ${currentData['CLOSE'].toFixed(2)}<br>Объём (акции): ${numberWithSpaces(currentData['VOLUME'])}`;
                 })
-
-            const legendKeys = ['TRADEDATE', 'CLOSE', 'VOLUME'];
-            const lineLegend = svg
-                .selectAll('.lineLegend')
-                .data(legendKeys)
-                .enter()
-                .append('g')
-                .attr('class', 'lineLegend')
-                .attr('transform', (d, i) => {
-                    return `translate(${x(currentData['TRADEDATE'])}, ${y(currentData['CLOSE']) + i * 15})`;
-                })
-
-            lineLegend
-                .append('text')
-                .text(d => {
-                    if (d === 'TRADEDATE') {
-                        return `${currentData[d].toLocaleDateString()}`;
-                    } else if (d === 'CLOSE') {
-                        return `Закрытие: ${currentData[d].toFixed(2)}`;
-                    } else {
-                        return `Объём (акции): ${numberWithSpaces(currentData[d])}`;
-                    }
-                })
-                .attr('width', 155)
-                .style('fill', 'black')
-                .attr('transform', `translate(${xPos}, ${-yPos})`); //align texts with boxes
+                .attr('transform', `translate(${x(currentData['TRADEDATE']) + xPosBg}, ${y(currentData['CLOSE']) - yPosBg})`); //align texts with boxes
         };
 
 

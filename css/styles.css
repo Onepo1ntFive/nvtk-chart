@@ -21,9 +21,6 @@
     pointer-events: all;
 }
 .chart .chart__selector {
-    position: absolute;
-    top: 0;
-    left: 0;
     display: flex;
     flex-flow: row wrap;
 }
@@ -49,10 +46,14 @@
     width: 100%;
     height: 600px;
 }
-.chart--small .line {
+.chart--full .line {
     fill: none;
     stroke-width: 2px;
     stroke: rgb(124, 181, 236);
+}
+.chart--full .lineLegendBlock {
+    color: #000;
+    background-color: rgba(124, 181, 236, 0.4);
 }
 /* - */
 .chart--small {
@@ -70,6 +71,10 @@
     fill: none;
     stroke-width: 2px;
     stroke: rgb(18, 81, 160);
+}
+.chart--small .lineLegendBlock {
+    color: #000;
+    background-color: rgba(255, 255, 255, 0.7);
 }
 /* - */
 .loader {
@@ -114,6 +119,17 @@ svg {
     transition: opacity 0.2s ease-in-out;
 }
 
+.lineLegendBlock {
+    padding: 10px;
+    line-height: 14px;
+    width: 170px;
+    height: 65px;
+    font-size: 12px;
+    font-family: sans-serif;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+}
+
 .lineLegend {
     pointer-events: none;
     transition: opacity 0.2s ease-in-out;
@@ -130,6 +146,10 @@ svg {
 
 .grid line {
     stroke: rgb(230, 230, 230);
+}
+
+.vol {
+    pointer-events: none;
 }
 
 .focus,

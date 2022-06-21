@@ -82,9 +82,9 @@
             }
         );
         let svg = document.querySelector('#chart');
-        const margin = { top: 0, right: 50, bottom: 75, left: 10 };
-        const margin2 = { top: 500, right: 50, bottom: 50, left: 10 };
-        const margin3 = { top: 550, right: 50, bottom: 0, left: 10 };
+        const margin = { top: 10, right: 50, bottom: 75, left: 10 };
+        const margin2 = { top: 490, right: 50, bottom: 50, left: 10 };
+        const margin3 = { top: 550, right: 50, bottom: 10, left: 10 };
 
         const width = svg.offsetWidth - margin.left - margin.right;
         const height = svg.offsetHeight - margin.top - margin.bottom;
@@ -114,10 +114,7 @@
         });
 
         let x = d3.scaleTime().domain([xMin, xMax]).range([0, width]);
-        let y = d3
-            .scaleLinear()
-            .domain([yMin, yMax])
-            .range([height - margin.top - margin.bottom, 0]);
+        let y = d3.scaleLinear().domain([yMin, yMax]).range([height - margin.top - margin.bottom, 0]);
 
         let x2 = d3.scaleTime().domain([xMin, xMax]).range([0, width]);
         let y2 = d3.scaleLinear().domain([yMin2, yMax2]).range([height2, 0]);
@@ -179,7 +176,6 @@
             .attr('id', 'xAxis')
             .attr("class", "axis axis--x")
             .attr('transform', `translate(5, ${height})`)
-            // .call(d3.axisBottom(xScale));
             .call(xAxis);
 
         // price y axis
@@ -188,7 +184,6 @@
             .attr('id', 'yAxis')
             .attr("class", "axis axis--y")
             .attr('transform', `translate(${width + 4}, 0)`)
-            // .call(d3.axisRight(yScale));
             .call(yAxis);
 
         // clip for zoom
@@ -279,11 +274,10 @@
             .attr('class', 'overlay-cross')
             .attr('width', width)
             .attr('height', height)
-            .on('mouseover', () => focus.style('opacity', '1'))
+            .on('mouseover', () => { focus.style('opacity', '1') })
             .on('mouseout', () => {
                 focus.style('opacity', '0')
-                d3.selectAll('.lineLegend').style('opacity', '0');
-                d3.selectAll('.lineLegendBg').style('opacity', '0');
+                d3.selectAll('.lineLegendBlock').style('opacity', '0');
             })
             .on('mousemove', generateCrosshair);
 
@@ -305,8 +299,7 @@
             const i = bisectDate(data, correspondingDate, 1);
             const d0 = data[i - 1];
             const d1 = data[i];
-            const currentPoint =
-                correspondingDate - d0['TRADEDATE'] > d1['TRADEDATE'] - correspondingDate ? d1 : d0;
+            const currentPoint = correspondingDate - d0['TRADEDATE'] > d1['TRADEDATE'] - correspondingDate ? d1 : d0;
             focus.attr('transform', `translate(${x(currentPoint['TRADEDATE'])}, ${y(currentPoint['CLOSE'])})`);
             focus
                 .select('line.y')
@@ -321,50 +314,17 @@
 
         /* Legends */
         function updateLegends(currentData) {
-            d3.selectAll('.lineLegend').remove();
-            d3.selectAll('.lineLegendBg').remove();
+            d3.selectAll('.lineLegendBlock').remove();
 
-            let xPos = (x(currentData['TRADEDATE']) >= width - 175) ? -165 : 20;
-            let xPosBg = (x(currentData['TRADEDATE']) >= width - 175) ? -175 : 10;
+            let xPosBg = (x(currentData['TRADEDATE']) >= width - 170) ? -180 : 10;
+            let yPosBg = (y(currentData['CLOSE']) >= height - 60) ? 60 : 0;
 
-            let yPos = (y(currentData['CLOSE']) >= height - 60) ? 40 : -10;
-            let yPosBg = (y(currentData['CLOSE']) >= height - 60) ? 60 : 10;
-
-            const lineLegendBg = svg
-                .append('rect')
-                .attr('class', 'lineLegendBg')
-                .attr('width', 165)
-                .attr('height', 60)
-                .attr('fill', 'rgba(124, 181, 236, 0.4)')
-                .attr('transform', () => {
-                    return `translate(${x(currentData['TRADEDATE']) + xPosBg}, ${y(currentData['CLOSE']) - yPosBg})`;
+            svg.append('foreignObject')
+                .attr('class', 'lineLegendBlock')
+                .html((d) => {
+                    return `<div>${currentData['TRADEDATE'].toLocaleDateString()}<br>Закрытие: ${currentData['CLOSE'].toFixed(2)}<br>Объём (акции): ${numberWithSpaces(currentData['VOLUME'])}`;
                 })
-
-            const legendKeys = ['TRADEDATE', 'CLOSE', 'VOLUME'];
-            const lineLegend = svg
-                .selectAll('.lineLegend')
-                .data(legendKeys)
-                .enter()
-                .append('g')
-                .attr('class', 'lineLegend')
-                .attr('transform', (d, i) => {
-                    return `translate(${x(currentData['TRADEDATE'])}, ${y(currentData['CLOSE']) + i * 15})`;
-                })
-
-            lineLegend
-                .append('text')
-                .text(d => {
-                    if (d === 'TRADEDATE') {
-                        return `${currentData[d].toLocaleDateString()}`;
-                    } else if (d === 'CLOSE') {
-                        return `Закрытие: ${currentData[d].toFixed(2)}`;
-                    } else {
-                        return `Объём (акции): ${numberWithSpaces(currentData[d])}`;
-                    }
-                })
-                .attr('width', 155)
-                .style('fill', 'black')
-                .attr('transform', `translate(${xPos}, ${-yPos})`); //align texts with boxes
+                .attr('transform', `translate(${x(currentData['TRADEDATE']) + xPosBg}, ${y(currentData['CLOSE']) - yPosBg})`); //align texts with boxes
         };
 
         function drawColumns(data) {
@@ -416,7 +376,7 @@
                 svg.append('g')
                     .attr('class', 'vol-y')
                     .attr("transform", `translate(${width + 4}, 0)`)
-                    .call(d3.axisRight(yVolumeScale).ticks(2).tickFormat(x => `${nFormatter(x, 1)}`));
+                    .call(d3.axisRight(yVolumeScale).ticks(0).tickFormat(x => `${nFormatter(x, 1)}`));
             }
         }
 
@@ -441,7 +401,6 @@
             zoom_line.select(".brush").call(brush.move, x.range().map(t.invertX, t));
         }
 
-        // time range selector
         const timeSelectorBtns = document.querySelectorAll('.js-timeselect');
         Array.prototype.forEach.call(timeSelectorBtns, function (timeSelectorBtn, i) {
             if (!canGetFullData) {
@@ -484,8 +443,6 @@
             .attr('perserveAspectRatio', 'xMinYMid')
             .call(resize);
         d3.select(window).on('resize.' + container.attr('id'), resize);
-
-
     };
     // -------------------------
     function nFormatter(num, digits) {
@@ -503,9 +460,6 @@
             return num >= item.value;
         });
         return item ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol : "0";
-    }
-    function capitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
     }
     function numberWithSpaces(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
