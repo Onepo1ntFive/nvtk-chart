@@ -6,7 +6,7 @@
 }
 .chart .chart__title {
     padding-bottom: 20px;
-    font-family: sans-serif;
+    font-family: 'Arial', sans-serif;
 }
 .chart .chart__chart {
     position: relative;
@@ -51,7 +51,7 @@
     stroke-width: 2px;
     stroke: rgb(124, 181, 236);
 }
-.chart--full .lineLegendBlock {
+.chart--full .lineLegendBlock div {
     color: #000;
     background-color: rgba(124, 181, 236, 0.4);
 }
@@ -72,7 +72,7 @@
     stroke-width: 2px;
     stroke: rgb(18, 81, 160);
 }
-.chart--small .lineLegendBlock {
+.chart--small .lineLegendBlock div {
     color: #000;
     background-color: rgba(255, 255, 255, 0.7);
 }
@@ -114,20 +114,34 @@
 svg {
     display: block;
 }
-.lineLegendBg {
+.lineLegendBlock {
+    overflow: visible;
+    line-height: 14px;
+    font-size: 12px;
+    font-family: 'Arial', sans-serif;
     pointer-events: none;
     transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
 }
 
-.lineLegendBlock {
+.lineLegendBlock div {
+    white-space: nowrap;
+    top: 0;
+    left: 10px;
+    position: absolute;
     padding: 10px;
-    line-height: 14px;
-    width: 170px;
-    height: 65px;
-    font-size: 12px;
-    font-family: sans-serif;
-    pointer-events: none;
-    transition: opacity 0.2s ease-in-out;
+}
+
+.lineLegendBlock.xGoLeft {}
+.lineLegendBlock.xGoLeft div {
+    left: auto;
+    right: 10px;
+}
+
+.lineLegendBlock.yGoTop {}
+.lineLegendBlock.yGoTop div {
+    top: auto;
+    bottom: 0;
 }
 
 .lineLegend {
@@ -135,7 +149,7 @@ svg {
     transition: opacity 0.2s ease-in-out;
 }
 .lineLegend text {
-    font-family: sans-serif;
+    font-family: 'Arial', sans-serif;
     text-transform: capitalize;
     font-size: 12px;
 }
